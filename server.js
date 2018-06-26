@@ -1,6 +1,7 @@
 'use strict';
 
-const { PORT } = require('./config')
+const { PORT } = require('./config');
+const logger = require("./middleware/logger");
 
 // Load array of notes // local library
 const data = require('./db/notes');
@@ -11,12 +12,35 @@ console.log('Hello Noteful!');
 
 const express = require('express');
 
-const app = express();
+const app = express(); 
+app.use(logger);
 
 // ADD STATIC SERVER HERE
 app.use(express.static('public'));
 
+//Error handler
+app.use(function (req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  res.status(404).json({ message: 'Not Found' });
+});
+
+app.use(function (err, req, res, next) {
+  res.status(err.status || 500);
+  res.json({
+    message: err.message,
+    error: err
+  });
+});
+
+// Temporary "boom" error for testing
+// app.get('/boom', (req, res, next) => {
+//   throw new Error('Boom!!');
+// });
+
+
 //Search filter logic 
+
 app.get('/api/notes', (req, res) => {
   const searchTerm = req.query.searchTerm;
   if (!searchTerm) return res.json(data);

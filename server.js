@@ -44,14 +44,18 @@ app.use(function (err, req, res, next) {
 
 //Search filter logic 
 
-app.get('/api/notes', (req, res) => {
-  const searchTerm = req.query.searchTerm;
-  if (!searchTerm) return res.json(data);
-  const filteredData = data.filter(function(item) {
-    return (item.title.includes(searchTerm)); 
-  })
-  res.json(filteredData);
+app.get('/api/notes', (req, res, next) => {
+  const {searchTerm} = req.query;
+
+  notes.filter(searchTerm, (err, list) => {
+    if (err) {
+      return next(err); // goes to error handler
+    }
+    res.json(list); // responds with filtered array
+  });
 });
+
+  
 
 app.get('/api/notes/:id', (req, res) => {
   res.json(data.find(item => item.id === Number(req.params.id)));

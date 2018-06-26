@@ -5,6 +5,9 @@ const logger = require("./middleware/logger");
 
 // Load array of notes // local library
 const data = require('./db/notes');
+// Simple In-Memory Database
+const simDB = require('./db/simDB');
+const notes = simDB.initialize(data);
 
 console.log('Hello Noteful!');
 

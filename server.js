@@ -15,31 +15,14 @@ console.log('Hello Noteful!');
 
 const express = require('express');
 
+//create an express application
 const app = express(); 
+//log all requests
 app.use(logger);
-
-// ADD STATIC SERVER HERE
+// create a static web server
 app.use(express.static('public'));
-
-//Error handler
-app.use(function (req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  res.status(404).json({ message: 'Not Found' });
-});
-
-app.use(function (err, req, res, next) {
-  res.status(err.status || 500);
-  res.json({
-    message: err.message,
-    error: err
-  });
-});
-
-// Temporary "boom" error for testing
-// app.get('/boom', (req, res, next) => {
-//   throw new Error('Boom!!');
-// });
+// parse request body
+app.use(express.json());
 
 
 //Search filter logic 
@@ -55,11 +38,67 @@ app.get('/api/notes', (req, res, next) => {
   });
 });
 
-  
-
+//Get notes by ID 
 app.get('/api/notes/:id', (req, res) => {
-  res.json(data.find(item => item.id === Number(req.params.id)));
+  //const {items} = req.query;
+  const id = req.params.id;
+  console.log(req);
+  notes.find(id, (err, item, next) => {
+    if (err) {
+      return next(err);
+    }
+    if (item) {
+      res.json(item);
+    } else {
+      next();
+    }
+  });
 });
+
+app.put('/api/notes/:id', (req, res, next) => {
+  const id = req.params.id;
+
+  /***** Never trust users - validate input *****/
+  const updateObj = {};
+  const updateFields = ['title', 'content'];
+
+  updateFields.forEach(field => {
+    if (field in req.body) {
+      updateObj[field] = req.body[field];
+    }
+  });
+
+  notes.update(id, updateObj, (err, item) => {
+    if (err) {
+      return next(err);
+    }
+    if (item) {
+      res.json(item);
+    } else {
+      next();
+    }
+  });
+});
+
+//Error handler
+app.use(function (req, res) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  res.status(404).json({ message: 'Not Found' });
+});
+
+app.use(function (err, req, res) {
+  res.status(err.status || 500);
+  res.json({
+    message: err.message,
+    error: err
+  });
+});
+
+// Temporary "boom" error for testing
+// app.get('/boom', (req, res, next) => {
+//   throw new Error('Boom!!');
+// });
 
 app.listen(PORT, function () {
   console.info(`Server listening on ${this.address().port}`);

@@ -95,6 +95,12 @@ router.put('/notes/:id', (req, res, next) => {
   });
 });
 
+router.delete('/notes/:id', (req, res) => {
+  notes.delete(req.params.id);
+  console.log(`Deleted note \`${req.params.id}\``)
+  res.status(204).end();
+})
+
 //Error handler
 router.use(function (req, res) {
   var err = new Error('Not Found');

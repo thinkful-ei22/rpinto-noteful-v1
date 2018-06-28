@@ -8,16 +8,30 @@ const app = express();
 
 
 const { PORT } = require('./config');
-const logger = require("./middleware/logger");
 
 
 //log all requests
-app.use(logger);
+app.use(morgan('dev'));
 // create a static web server
 app.use(express.static('public'));
 // parse request body
 app.use(express.json());
 app.use('/api', notesRouter);
+
+//Error handler
+app.use(function (req, res) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  res.status(404).json({ message: 'Not Found' });
+});
+
+app.use(function (err, req, res) {
+  res.status(err.status || 500);
+  res.json({
+    message: err.message,
+    error: err
+  });
+});
 
 
 app.listen(PORT, function () {
@@ -25,3 +39,4 @@ app.listen(PORT, function () {
 }).on('error', err => {
   console.error(err);
 });
+
